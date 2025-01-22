@@ -1,10 +1,7 @@
-
-
-
 body{
-    padding:2%;
-    font-family: poppins;
-    padding:2%;
+  padding:2%;
+  font-family: poppins;
+  padding:2%;
 }
 
 form{
@@ -12,20 +9,7 @@ form{
   background-color:grey ;
 }
 
-
-
 button{
-    padding: 1%;
-    border-radius:123333333333%;
+  padding: 1%;
+  border-radius: 10px;
 }
-
-
-
-
-
-
-
-
-
-
-

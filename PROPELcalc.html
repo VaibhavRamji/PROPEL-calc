@@ -36,6 +36,52 @@
             <input type="email" id="email" placeholder="email "><br><br>
             <button>sign up</button>
         </form>
+        <div id="log-area" style="border: 1px white; padding: 10px; margin-top: 10px;">
+          <h3></h3>
+          <p id="log-message"></p>
+        </div>
+
+<script>
+
+          
+
+document.addEventListener('DOMContentLoaded', () => {
+  const logInForm = document.querySelector('#log\\ in\\ area form');
+  const signUpForm = document.querySelector('#sign\\ up\\ area form');
+  const logMessage = document.getElementById('log-message');
+
+  function updateLog(message) {
+    logMessage.innerText = message;
+  }
+
+  logInForm.addEventListener('submit', function(event) {
+    event.preventDefault();
+    const emailLogIn = logInForm.querySelector('#email').value;
+    const emailSignUp = signUpForm.querySelector('#email').value;
+
+    if (emailLogIn && !emailSignUp) {
+      localStorage.setItem('loginEmail', emailLogIn);
+      updateLog('Login email saved!');
+    } else {
+      alert('Please use the correct form!');
+    }
+  });
+
+  signUpForm.addEventListener('submit', function(event) {
+    event.preventDefault();
+    const emailSignUp = signUpForm.querySelector('#email').value;
+    const emailLogIn = logInForm.querySelector('#email').value;
+
+    if (emailSignUp && !emailLogIn) {
+      localStorage.setItem('signupEmail', emailSignUp);
+      updateLog('Sign-up email saved!');
+    } else {
+      alert('Please use the correct form!');
+    }
+  });
+});
+
+        </script>
   <P>propelcalc does not view your email or email password.</P>
       </section>
 
@@ -102,7 +148,11 @@
         <input type="text" id="o/f.ratio" name="parameters"><br><br>    
   
       </section>
-      
+      <div id="oxidizer to fuel ratio calculator">
+      <script>
+        const massFlowRate = parseFloat(document.getElementById('massFlowRate').value);
+      </script>
+      </div>
         
       
 

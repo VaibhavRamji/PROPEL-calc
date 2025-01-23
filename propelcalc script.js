@@ -10,13 +10,10 @@ document.addEventListener('DOMContentLoaded'), (event) => {
         const expansionRatio = parseFloat(document.getElementById('expansionRatio').value);
         const massFlowRate = parseFloat(document.getElementById('massFlowRate').value);
         const nozzleExitPressure = parseFloat(document.getElementById('nozzleExitPressure').value)
-        
+
          // Constants
-         const R = 8314; // J/(kmol*K)
+         const R = 8.314; // J/(kmol*K)
          const eta = 0.95; // Nozzle efficiency
          const g0 = 9.81; // m/s^2 (standard gravitational acceleration)
-        
-        
-        ;}
-
-       
+         
+    ;}

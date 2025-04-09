@@ -156,8 +156,15 @@ document.addEventListener('DOMContentLoaded', () => {
         
       
 
-      <section id="simulation run button">
-        <input class="btn btn-primary" type="submit" value="Run simulation">
+  
+
+        <button onclick="calculateCombustion()">Calculate</button>
+        <p id="result"></p>
+        <style>
+          button{
+            border-radius: 12px;
+          }
+        </style>
       </section>
 
       <section id="results">
@@ -166,7 +173,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
        <h1>Simulation results:</h1>
 
-      <!-- Link to the JavaScript file --> <script src="propelcalc script.js"></script>
+      <!-- Link to the JavaScript file --> <script src="script.js"></script>
 
       
     </body>

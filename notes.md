@@ -8,5 +8,5 @@ https://colorhunt.co/palette/f4f6fff3c623eb831710375c
 - [ ] Make sure bootstrap radiobutton group is named correctly (e.g. id names)
 - [ ] Use my code as reference to add radiobutton groups as you see fit
 - [ ] Stop capitalizing text. Use normal English.
-- [ ] All buttons need to have some `border-radius` to make them smoot
+- [ ] All buttons need to have some `border-radius` to make them smooth
 - [ ] Make everything in html with some id

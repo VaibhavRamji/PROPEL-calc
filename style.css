@@ -1,6 +1,6 @@
 body{
   padding:2%;
-  font-family: poppins;
+  font-family: 'italic', sans-serif;
   padding:2%;
 }
 
@@ -13,19 +13,11 @@ section
 button{
   padding: 1%;
   border-radius: 10px;
+  
+    
+  
 }
 
 
-.my-button{
-  background-color: blue;
-  color: white;
-  padding: 10px 20px;
-  border: none;
-  cursor: pointer;
-  font-size: 16px;
-  transition: background-color 0.3s ease; /* Smooth transition */
-}
 
-.my-button:hover{
-  background-color: red;
-}
+

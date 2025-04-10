@@ -10,3 +10,4 @@ https://colorhunt.co/palette/f4f6fff3c623eb831710375c
 - [ ] Stop capitalizing text. Use normal English.
 - [ ] All buttons need to have some `border-radius` to make them smooth
 - [ ] Make everything in html with some id
+-[ ] add user input from propellant type selection and combustion cycle selection into js.

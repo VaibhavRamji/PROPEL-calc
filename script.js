@@ -19,8 +19,8 @@ function calculateCombustion() {
       isNaN(massflowrate) ||
       isNaN(thrust) ||
       isNaN(g0)
-    ) {
-      document.getElementById("result").textContent =
+     ) {
+      document.getElementById("isp").textContent =
         "Please ensure all input fields contain valid numbers.";
       return; // Stop execution if validation fails
     }

@@ -137,7 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
       
      <!--propellant selection-->
       <div id="propellant type">
-       <h2>Select propellant type</h2> <p>If your propellant type is not there the simulation will be run  from the parameters entered by the user</p>
+       <h2>Select propellant type</h2> <p>If your propellant type isn't avaiable. The simulation will be run by the parameters entered by the user </p>
        <section class="btn-group-vertical" id="propellant type" role="group" aria-label="Vertical radio toggle button group">
         <input type="radio" class="btn-check" name="vbtn-radi" id="vbtn-radi1" autocomplete="off" checked>
         <label class="btn btn-outline-secondary" for="vbtn-radi1">lh2/lox</label>
@@ -149,9 +149,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <label class="btn btn-outline-secondary" for="vbtn-radi4">monomethyl hydrazine/nitrogen tetroxide</label>
        </div> <br><br>
 
-       <label>oxidizer to fuel ratio</label>
-       <input type="text" placeholder="enter oxidizer to fuel ratio">
-       <br><br>
+       
        
       <!------parameters entry---------->
       <section id="parameters">
@@ -212,6 +210,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
        <!-- Button to Run Simulation -->
   <button onclick="calculateCombustion()">Run Simulation <i class="fa fa-rocket"></i></button>
+
+       <!-- Button to save results as txt file-->
+        <button onclick="saveResult()">Save Results <i class="fa fa-save"></i></button>
+       
 
   <!-- Result Display -->
   <p id="isp"></p>

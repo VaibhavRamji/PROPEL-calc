@@ -105,6 +105,26 @@ function saveResult() {
   const peText = document.getElementById("pe").textContent;
   const meText = document.getElementById("me").textContent;
 
+
+  // Autofill gamma and R based on selected propellant
+const propellantData = {
+  "lh2/lox": { gamma: 1.20, R: 412 },
+  "lng/lox": { gamma: 1.13, R: 370 },
+  "rp-1/lox": { gamma: 1.22, R: 355 },
+  "mmh/n2o4": { gamma: 1.18, R: 330 }
+};
+
+document.querySelectorAll('input[name="vbtn-radi"]').forEach(radio => {
+  radio.addEventListener('change', () => {
+    const selected = document.querySelector('input[name="vbtn-radi"]:checked').value;
+    const props = propellantData[selected];
+    if (props) {
+      document.getElementById("specificheatratio").value = props.gamma;
+      document.getElementById("specificgascontent").value = props.R;
+    }
+  });
+});
+
   if (
     !ispText || ispText.includes("Please ensure") ||
     !cstarText || !veText || !peText || !meText

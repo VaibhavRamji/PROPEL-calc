@@ -66,13 +66,13 @@ function calculateCombustion() {
 
   // Characteristic Velocity (C*)
   const cStar = Math.sqrt(
-    (specificgascontent * combustiontemp) /
-      specificheatratio *
-      Math.pow(
-        (2 / (specificheatratio + 1)),
-        ((specificheatratio + 1) / (specificheatratio - 1))
-      )
-  );
+  (specificgascontent * combustiontemp) / specificheatratio
+) / Math.sqrt(
+  Math.pow(
+    (2 / (specificheatratio + 1)),
+    ((specificheatratio + 1) / (specificheatratio - 1))
+  )
+);
 
   // Effective Exhaust Velocity (Ve)
   const ve = isp * g0;

@@ -52,19 +52,49 @@
   </div>
 </section>
 
-<!-- Admin Download Button -->
-<button onclick="downloadCSV()">Download All Entries</button>
+<!-- Admin Unlock -->
+<div style="margin-top: 20px;">
+  <input type="password" id="admin-code" placeholder="Enter admin code">
+  <button onclick="checkAdmin()">Unlock Admin Tools</button>
+</div>
+
+<!-- Hidden Admin Download Button -->
+<button id="admin-download" style="display:none; margin-top: 10px;" onclick="downloadCSV()">Download All Entries</button>
 
 <script>
   document.addEventListener('DOMContentLoaded', () => {
     const loginForm = document.getElementById('login-form');
     const signupForm = document.getElementById('signup-form');
     const logMessage = document.getElementById('log-message');
-
     const allEntries = [];
 
     function updateLog(message) {
       logMessage.innerText = message;
+    }
+
+    function checkAdmin() {
+      const code = document.getElementById("admin-code").value;
+      if (code === "yourSecret123") { // ← Change this to your own secret code
+        document.getElementById("admin-download").style.display = "inline-block";
+        updateLog("Admin tools unlocked.");
+      } else {
+        alert("Incorrect code.");
+      }
+    }
+
+    function downloadCSV() {
+      let csv = "Name,Action,Timestamp\n";
+      allEntries.forEach(entry => {
+        csv += `"${entry.name}","${entry.action}","${entry.timestamp}"\n`;
+      });
+
+      const blob = new Blob([csv], { type: "text/csv" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "user_entries.csv";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     }
 
     loginForm.addEventListener('submit', function(event) {
@@ -92,21 +122,6 @@
         alert('Please enter your name to sign up.');
       }
     });
-
-    window.downloadCSV = function () {
-      let csv = "Name,Action,Timestamp\n";
-      allEntries.forEach(entry => {
-        csv += `"${entry.name}","${entry.action}","${entry.timestamp}"\n`;
-      });
-
-      const blob = new Blob([csv], { type: "text/csv" });
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = "user_entries.csv";
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    };
   });
 </script>
 

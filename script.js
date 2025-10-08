@@ -96,7 +96,40 @@ function calculateCombustion() {
   document.getElementById("ve").textContent = `Effective Exhaust Velocity (Ve): ${formattedVe} m/s`;
   document.getElementById("pe").textContent = `Nozzle Exit Pressure (Pe): ${formattedPe} Pa`;
   document.getElementById("me").textContent = `Nozzle Exit Mach Number (Me): ${formattedMe}`;
+
 }
+
+document.addEventListener("DOMContentLoaded", function () {
+  // Define propellant data
+  const propellantData = {
+    "lh2/lox": { gamma: 1.20, R: 412 },
+    "lng/lox": { gamma: 1.13, R: 370 },
+    "rp1/lox": { gamma: 1.22, R: 355 },
+    "mmh/n2o4": { gamma: 1.18, R: 330 }
+  };
+
+  // Listen for changes on all radio buttons
+  document.querySelectorAll('input[name="vbtn-radi"]').forEach(radio => {
+    radio.addEventListener("change", () => {
+      const selected = document.querySelector('input[name="vbtn-radi"]:checked').value;
+      const props = propellantData[selected];
+      if (props) {
+        document.getElementById("specificheatratio").value = props.gamma;
+        document.getElementById("specificgascontent").value = props.R;
+      }
+    });
+  });
+
+  // Trigger autofill on page load if a radio is already selected
+  const selected = document.querySelector('input[name="vbtn-radi"]:checked');
+  if (selected) {
+    const props = propellantData[selected.value];
+    if (props) {
+      document.getElementById("specificheatratio").value = props.gamma;
+      document.getElementById("specificgascontent").value = props.R;
+    }
+  }
+});
 
 function saveResult() {
   const ispText = document.getElementById("isp").textContent;
@@ -106,24 +139,7 @@ function saveResult() {
   const meText = document.getElementById("me").textContent;
 
 
-  // Autofill gamma and R based on selected propellant
-const propellantData = {
-  "lh2/lox": { gamma: 1.20, R: 412 },
-  "lng/lox": { gamma: 1.13, R: 370 },
-  "rp-1/lox": { gamma: 1.22, R: 355 },
-  "mmh/n2o4": { gamma: 1.18, R: 330 }
-};
-
-document.querySelectorAll('input[name="vbtn-radi"]').forEach(radio => {
-  radio.addEventListener('change', () => {
-    const selected = document.querySelector('input[name="vbtn-radi"]:checked').value;
-    const props = propellantData[selected];
-    if (props) {
-      document.getElementById("specificheatratio").value = props.gamma;
-      document.getElementById("specificgascontent").value = props.R;
-    }
-  });
-});
+  
 
   if (
     !ispText || ispText.includes("Please ensure") ||

@@ -52,32 +52,19 @@
   </div>
 </section>
 
+<!-- Admin Download Button -->
+<button onclick="downloadCSV()">Download All Entries</button>
+
 <script>
   document.addEventListener('DOMContentLoaded', () => {
     const loginForm = document.getElementById('login-form');
     const signupForm = document.getElementById('signup-form');
     const logMessage = document.getElementById('log-message');
 
-    // Store all names and actions
     const allEntries = [];
 
     function updateLog(message) {
       logMessage.innerText = message;
-    }
-
-    function downloadCSV() {
-      let csv = "Name,Action,Timestamp\n";
-      allEntries.forEach(entry => {
-        csv += `"${entry.name}","${entry.action}","${entry.timestamp}"\n`;
-      });
-
-      const blob = new Blob([csv], { type: "text/csv" });
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = "user_entries.csv";
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
     }
 
     loginForm.addEventListener('submit', function(event) {
@@ -87,7 +74,6 @@
         localStorage.setItem('loginName', name);
         allEntries.push({ name, action: "Login", timestamp: new Date().toISOString() });
         updateLog('Login name saved!');
-        downloadCSV();
         loginForm.reset();
       } else {
         alert('Please enter your name to log in.');
@@ -101,12 +87,26 @@
         localStorage.setItem('signupName', name);
         allEntries.push({ name, action: "Signup", timestamp: new Date().toISOString() });
         updateLog('Sign-up name saved!');
-        downloadCSV();
         signupForm.reset();
       } else {
         alert('Please enter your name to sign up.');
       }
     });
+
+    window.downloadCSV = function () {
+      let csv = "Name,Action,Timestamp\n";
+      allEntries.forEach(entry => {
+        csv += `"${entry.name}","${entry.action}","${entry.timestamp}"\n`;
+      });
+
+      const blob = new Blob([csv], { type: "text/csv" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "user_entries.csv";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    };
   });
 </script>
 

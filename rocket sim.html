@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rocket Simulation</title>
+<style>
+body { font-family: Arial, sans-serif; margin: 20px; background-color: #f9f9f9; color: #111; }
+h1 { text-align: center; margin-bottom: 20px; }
+form { max-width: 400px; margin: 0 auto 30px auto; padding: 15px; border: 1px solid #ccc; background-color: #fff; }
+label { display: block; margin-top: 10px; }
+input { width: 100%; padding: 5px; margin-top: 2px; }
+button { margin-top: 15px; padding: 8px; width: 48%; font-size: 14px; cursor: pointer; }
+#plots { max-width: 1000px; margin: 0 auto; }
+canvas { margin-top: 20px; background-color: #fff; border: 1px solid #ccc; }
+</style>
+</head>
+<body>
+<h1>Rocket Simulation</h1>
+
+<form id="rocketForm">
+<label for="initial_mass">Initial Mass (kg):</label>
+<input type="number" id="initial_mass" name="initial_mass" value="15991">
+
+<label for="final_mass">Final Mass (kg):</label>
+<input type="number" id="final_mass" name="final_mass" value="5422.47">
+
+<label for="mass_flow_rate">Mass Flow Rate (kg/s):</label>
+<input type="number" id="mass_flow_rate" name="mass_flow_rate" value="112.5">
+
+<label for="dt">Time Step (s):</label>
+<input type="number" step="0.01" id="dt" name="dt" value="0.1">
+
+<label for="thrust">Max Thrust (N):</label>
+<input type="number" id="thrust" name="thrust" value="351000">
+
+<label for="L">Rocket Length (m):</label>
+<input type="number" step="0.1" id="L" name="L" value="15">
+
+<label for="final_pitch_angle">Final Pitch Angle (deg):</label>
+<input type="number" step="0.1" id="final_pitch_angle" name="final_pitch_angle" value="65">
+
+<label for="pitch_start_time">Pitch Start Time (s):</label>
+<input type="number" step="0.1" id="pitch_start_time" name="pitch_start_time" value="25">
+
+<label for="pitch_duration">Pitch Duration (s):</label>
+<input type="number" step="0.1" id="pitch_duration" name="pitch_duration" value="37">
+
+<button type="button" id="runSim">Run Simulation</button>
+<button type="button" id="downloadCSV">Download CSV</button>
+</form>
+
+<div id="plots">
+<canvas id="velocityPlot"></canvas>
+<canvas id="altitudePlot"></canvas>
+<canvas id="pitchPlot"></canvas>
+<canvas id="accelerationPlot"></canvas>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.getElementById("runSim").addEventListener("click", async () => {
+    const formData = new FormData(document.getElementById("rocketForm"));
+    const data = {};
+    formData.forEach((value, key) => data[key] = parseFloat(value));
+
+    const response = await fetch("/run_simulation", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+    });
+
+    const result = await response.json();
+    plotData(result);
+});
+
+document.getElementById("downloadCSV").addEventListener("click", () => {
+    window.location.href = "/download_csv";
+});
+
+function plotData(data) {
+    new Chart(document.getElementById("velocityPlot"), {
+        type: 'line',
+        data: { labels: data['Time (s)'], datasets: [{ label: 'Velocity (m/s)', data: data['Velocity (m/s)'], borderColor: 'blue', fill: false }] }
+    });
+
+    new Chart(document.getElementById("altitudePlot"), {
+        type: 'line',
+        data: { labels: data['Time (s)'], datasets: [{ label: 'Altitude (m)', data: data['Altitude (m)'], borderColor: 'orange', fill: false }] }
+    });
+
+    new Chart(document.getElementById("pitchPlot"), {
+        type: 'line',
+        data: { labels: data['Time (s)'], datasets: [{ label: 'Pitch Angle (deg)', data: data['Pitch angle (deg)'], borderColor: 'purple', fill: false }] }
+    });
+
+    new Chart(document.getElementById("accelerationPlot"), {
+        type: 'line',
+        data: { labels: data['Time (s)'], datasets: [{ label: 'Acceleration (m/s²)', data: data['Acceleration (m/s^2)'], borderColor: 'red', fill: false }] }
+    });
+}
+</script>
+</body>
+</html>

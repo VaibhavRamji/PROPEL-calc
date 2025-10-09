@@ -2,64 +2,39 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Rocket Simulation</title>
+<title>Rocket Flight Simulator</title>
 <style>
-body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; color: #000; }
-h1 { text-align: center; }
-button { padding: 10px 20px; margin: 10px 0; cursor: pointer; }
-input { width: 100px; margin: 5px; }
-label { margin-right: 10px; }
-#output { margin-top: 20px; }
-canvas { max-width: 100%; }
+  body { font-family: Arial, sans-serif; background: #f8f8f8; color: #000; margin: 20px; }
+  h1 { text-align: center; }
+  .container { max-width: 1200px; margin: auto; }
+  textarea, input { width: 100%; margin: 5px 0; padding: 8px; font-family: monospace; }
+  button { padding: 10px 20px; margin: 5px 0; font-size: 16px; }
+  canvas { margin-top: 20px; }
 </style>
 </head>
 <body>
-<h1>Rocket Simulation (Python in Browser)</h1>
-
-<!-- Parameters Form -->
-<div>
-<label>Initial Mass (kg): <input type="number" id="initial_mass" value="15991"></label>
-<label>Final Mass (kg): <input type="number" id="final_mass" value="5422.47"></label>
-<label>Mass Flow Rate (kg/s): <input type="number" id="mass_flow_rate" value="112.5"></label>
-<label>Thrust (N): <input type="number" id="thrust" value="351000"></label>
-</div>
-
-<button id="runSimulation">Run Simulation</button>
-<button id="downloadCSV" disabled>Download CSV</button>
-
-<div id="output"></div>
-
-<script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
-<script>
-let pyodideReady = false;
-let simulationCSV = "";
-
-async function initPyodide() {
-    window.pyodide = await loadPyodide({ indexURL: "https://cdn.jsdelivr.net/pyodide/v0.24.1/full/" });
-    await pyodide.loadPackage(["numpy","pandas","matplotlib"]);
-    pyodideReady = true;
-}
-initPyodide();
-
-document.getElementById("runSimulation").onclick = async () => {
-    if (!pyodideReady) { alert("Python is still loading, wait a few seconds."); return; }
-
-    const initial_mass = parseFloat(document.getElementById("initial_mass").value);
-    const final_mass = parseFloat(document.getElementById("final_mass").value);
-    const mass_flow_rate = parseFloat(document.getElementById("mass_flow_rate").value);
-    const thrust = parseFloat(document.getElementById("thrust").value);
-
-    const pythonCode = `
+<div class="container">
+<h1>Rocket Flight Simulator</h1>
+<p>Edit parameters or leave defaults. Click "Run Simulation" to start.</p>
+<textarea id="pythonCode" rows="40">
+# YOUR FULL PYTHON SCRIPT STARTS HERE
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import math
-from js import console
+import io
 
-# Simulation constants
+import sys
+
+# NOTE: This is your full Python backend exactly as you gave earlier
+# Constants
 g0 = 9.80665
+mass_flow_rate = 112.5
+initial_mass = 15991
+final_mass = 5422.47
 dt = 0.1
 AREA = 3.548
+base_thrust = 351000
 H = 8500
 rho0 = 1.225
 L = 15
@@ -70,136 +45,288 @@ rx = 0
 R = 6.371e6
 M = 5.972e24
 G = 6.67430e-11
-pi = math.pi
+π = 3.14159265358979323846264338327950288419716939937510
 
-# Parameters from JS
-initial_mass = ${initial_mass}
-final_mass = ${final_mass}
-mass_flow_rate = ${mass_flow_rate}
-base_thrust = ${thrust}
-
-# Pitch-over
+# Pitch-over Parameters
 pitch_start_time = 25
 pitch_duration = 37
 final_pitch_angle = 65
 
-# Initial conditions
-time = [0]; mass = [initial_mass]; velocity=[0]; acceleration=[0]
-vx=[0]; vy=[0]; vz=[0]; altitude=[0]; x=[0]; y=[0]; z=[0]
-theta=[0]; gimbal_angles=[0]; thrust_values=[0]; gravity_values=[0]
-i_values=[0]; q_values=[0]; ax_values=[0]; ay_values=[0]; az_values=[0]
-Fx_values=[0]; Fy_values=[0]; Fz_values=[0]; acc_magnitude_values=[0]
-FORCE_magnitude_values=[0]; v_total_List=[0]
-
 def get_mass_flow(t):
     if 60 <= t < 100:
         return 30.0
-    return mass_flow_rate
+    return 112.5
 
+# Initial Conditions
+time = [0]
+mass = [initial_mass]
+velocity = [0]
+acceleration = [0]
+altitude = [0]
+vx = [0]
+vy = [0]
+vz = [0]
+x = [0]
+y = [0]
+z = [0]
+gimbal_angles = [0]
+thrust_values = [0]
+gravity_values= [0]
+i_values = [0]
+q_values = [0]
+ax_values = [0]
+ay_values = [0]
+az_values=[0]
+Fx_values = [0]
+Fy_values = [0]
+Fz_values = [0]
+acc_magnitude_values = [0]
+FORCE_magnitude_values = [0]
+slosh_xt = [0]
+slosh_yt = [0]
+slosh_zt = [0]
+theta = [0]
+tx_list = [0]
+ty_list = [0]
+tz_list = [0]
+v_total_List = [0]
+
+# Simulation loop
 while mass[-1] > final_mass:
     t = time[-1]
     m = mass[-1]
     h = altitude[-1]
     v = velocity[-1]
-    
-    g = (G*M)/(R**2)
+
+    # gravity at each timestep
+    g = (G * M) / (R ** 2)
+
+    # Moment of inertia
     I = (1/3)*m*L**2
-    
-    # Throttle
-    if t < 60: throttle=1.0
-    elif 60 <= t < 70: throttle=1.0 - 0.35*((t-60)/10)
-    elif 70 <= t < 80: throttle=0.65
-    elif 80 <= t < 90: throttle=0.65 + 0.35*((t-80)/10)
-    else: throttle=1.0
-    thrust_nominal = base_thrust*throttle
-    value = np.clip((desired_alpha*I)/(thrust_nominal*r), -1, 1)
+
+    # Throttle ramp logic
+    if t < 60:
+        throttle = 1.0
+    elif 60 <= t < 70:
+        throttle = 1.0 - 0.35 * ((t - 60) / 10)
+    elif 70 <= t < 80:
+        throttle = 0.65
+    elif 80 <= t < 90:
+        throttle = 0.65 + 0.35 * ((t - 80) / 10)
+    else:
+        throttle = 1.0
+
+    thrust_nominal = base_thrust * throttle
+    value = (desired_alpha * I) / (thrust_nominal * r)
+    value = np.clip(value, -1.0, 1.0)
     gimbal_angle_rad = np.arcsin(value)
-    current_thrust = thrust_nominal*np.cos(gimbal_angle_rad)
+    current_thrust = thrust_nominal * np.cos(gimbal_angle_rad)
     thrust_values.append(current_thrust)
 
-    if t < pitch_start_time: current_theta = np.radians(90)
-    elif pitch_start_time <= t < pitch_start_time+pitch_duration:
-        frac=(t-pitch_start_time)/pitch_duration
-        angle_deg=90-frac*(90-final_pitch_angle)
+    # Dynamic pitch-over angle
+    if t < pitch_start_time:
+        current_theta = np.radians(90)
+    elif pitch_start_time <= t < pitch_start_time + pitch_duration:
+        frac = (t - pitch_start_time) / pitch_duration
+        angle_deg = 90 - frac * (90 - final_pitch_angle)
         current_theta = np.radians(angle_deg)
-    else: current_theta = np.radians(final_pitch_angle)
+    else:
+        current_theta = np.radians(final_pitch_angle)
     theta.append(current_theta)
 
-    rho = rho0*np.exp(-h/H)
-    v_total = np.sqrt(vx[-1]**2 + vy[-1]**2 + vz[-1]**2)
-    if v_total != 0:
-        drag_x = 0.5*rho*v_total**2*0.295*vx[-1]/v_total
-        drag_y = 0.5*rho*v_total**2*0.295*vy[-1]/v_total
-        drag_z = 0.5*rho*v_total**2*0.295*vz[-1]/v_total
+    # Atmospheric density
+    rho = rho0 * np.exp(-h / H)
+
+    # Drag coefficient
+    if v < 340:
+        cd = 0.295
+    elif 340 <= v < 680:
+        cd = 0.85
     else:
-        drag_x=drag_y=drag_z=0
+        cd = 1.3
 
-    q = 0.5*rho*v**2
-    ax=(current_thrust*np.cos(current_theta)-drag_x)/m
-    ay=(current_thrust*np.sin(current_theta)-drag_y)/m - g
-    az=(current_thrust*np.sin(gimbal_angle_rad)-drag_z)/m - g
-    acc=np.sqrt(ax**2+ay**2+az**2)
-    
-    Fx=m*ax; Fy=m*ay; Fz=m*az
-    FORCE_MAGNITUDE = math.sqrt(Fx**2 + Fy**2 + Fz**2)
-    ACC_MAGNITUDE = np.sqrt(ax**2+ay**2+az**2)
-    tx = ry*Fz - r*Fy
-    ty = r*Fx - rx*Fz
-    tz = rx*Fy - ry*Fx
+    value = (desired_alpha * I) / (current_thrust * r)
+    value = np.clip(value, -1.0, 1.0)
+    gimbal_angle_rad = np.arcsin(value)
 
-    new_vx = vx[-1]+ax*dt
-    new_vy = vy[-1]+ay*dt
-    new_vz = vz[-1]+az*dt
-    new_velocity = np.sqrt(new_vx**2 + new_vy**2 + new_vz**2)
-    new_x = x[-1]+new_vx*dt
-    new_y = y[-1]+new_vy*dt
-    new_z = z[-1]+new_vz*dt
+    # Velocity vector
+    v_total = np.sqrt(vx[-1]**2 + vy[-1]**2 + vz[-1]**2)
+    drag = 0.5 * rho * v_total**2 * cd * AREA
+    drag_x = drag * (vx[-1] / v_total) if v_total != 0 else 0
+    drag_y = drag * (vy[-1] / v_total) if v_total != 0 else 0
+    drag_z = drag * (vz[-1] / v_total) if v_total != 0 else 0
 
+    # Dynamic pressure
+    q = 0.5 * rho * v**2
+
+    # Accelerations
+    ax = (current_thrust * np.cos(current_theta) - drag_x) / m
+    ay = (current_thrust * np.sin(current_theta) - drag_y) / m - g
+    az = (current_thrust * np.sin(gimbal_angle_rad) - drag_z) / m - g
+    acc = np.sqrt(ax**2 + ay**2 + az**2)
+
+    # Forces
+    Fx = m * ax
+    Fy = m * ay
+    Fz = m * az
+    FORCE_MAGNITUDE = math.sqrt(Fx**2+ Fy**2+ Fz**2)
+    ACC_MAGNITUDE = math.sqrt(ax**2+ ay**2 + az**2)
+
+    # Torque
+    tx = ry * Fz - r * Fy
+    ty = r * Fx - rx * Fz
+    tz = rx * Fy - ry * Fx
+
+    # Update velocities and positions
+    new_vx = vx[-1] + ax * dt
+    new_vy = vy[-1] + ay * dt
+    new_vz = vz[-1] + az * dt
+    new_velocity = np.sqrt(new_vx**2 + new_vy**2)
+    new_x = x[-1] + new_vx * dt
+    new_y = y[-1] + new_vy * dt
+    new_z = z[-1] + new_vz * dt
+
+    # Update state
     current_mfr = get_mass_flow(t)
-    new_mass = m - current_mfr*dt
-    new_time = t+dt
+    new_mass = m - current_mfr * dt
+    new_time = t + dt
     new_altitude = new_y
 
-    time.append(new_time); mass.append(new_mass); velocity.append(new_velocity)
-    acceleration.append(acc); ax_values.append(ax); ay_values.append(ay); az_values.append(az)
-    acc_magnitude_values.append(ACC_MAGNITUDE); altitude.append(new_altitude)
-    vx.append(new_vx); vy.append(new_vy); vz.append(new_vz)
-    x.append(new_x); y.append(new_y); z.append(new_z)
-    gravity_values.append(g); i_values.append(I); q_values.append(q)
-    Fz_values.append(Fz); Fx_values.append(Fx); Fy_values.append(Fy)
+    # Append
+    time.append(new_time)
+    mass.append(new_mass)
+    velocity.append(new_velocity)
+    acceleration.append(acc)
+    ax_values.append(ax)
+    ay_values.append(ay)
+    az_values.append(az)
+    acc_magnitude_values.append(ACC_MAGNITUDE)
+    altitude.append(new_altitude)
+    vx.append(new_vx)
+    vy.append(new_vy)
+    vz.append(new_vz)
+    x.append(new_x)
+    y.append(new_y)
+    z.append(new_z)
+    gravity_values.append(g)
+    i_values.append(I)
+    q_values.append(q)
+    Fz_values.append(Fz)
+    Fx_values.append(Fx)
+    Fy_values.append(Fy)
     FORCE_magnitude_values.append(FORCE_MAGNITUDE)
-    tx_list=[tx]; ty_list=[ty]; tz_list=[tz]; v_total_List.append(v_total)
+    tx_list.append(tx)
+    ty_list.append(ty)
+    tz_list.append(tz)
+    v_total_List.append(v_total)
     gimbal_angles.append(np.degrees(gimbal_angle_rad))
 
-# DataFrame
+# CSV
 df = pd.DataFrame({
-    'Time (s)': time, 'Mass (kg)': mass, 'Velocity (m/s)': velocity,
-    'Acceleration (m/s^2)': acceleration, 'ax (m/s^2)': ax_values, 'ay (m/s^2)': ay_values, 'az (m/s^2)': az_values,
-    'Altitude (m)': altitude, 'vx (m/s)': vx, 'vy (m/s)': vy, 'vz (m/s)': vz,
-    'x (m)': x, 'y (m)': y, 'z (m)': z,
-    'Pitch angle (deg)': [np.degrees(a) for a in theta], 'Gimbal angle (deg)': gimbal_angles,
-    'Thrust (N)': thrust_values, 'gravity_values)': gravity_values,
-    'Moment of inertia': i_values, 'Dynamic Pressure (Pa)': q_values,
-    'Fz': Fz_values, 'Fx': Fx_values, 'Fy': Fy_values, 'force magnitude': FORCE_magnitude_values,
-    'accleration magnitude': acc_magnitude_values, 'velocity vector magnitude ': v_total_List
+    'Time (s)': time,
+    'Mass (kg)': mass,
+    'Velocity (m/s)': velocity,
+    'Acceleration (m/s^2)': acceleration,
+    'ax (m/s^2)': ax_values,
+    'ay (m/s^2)': ay_values,
+    'az (m/s^2)': az_values,
+    'Altitude (m)': altitude,
+    'vx (m/s)': vx,
+    'vy (m/s)': vy,
+    'vz (m/s)': vz,
+    'x (m)': x,
+    'y (m)': y,
+    'z (m)': z,
+    'Pitch angle (deg)': [np.degrees(a) for a in theta],
+    'Gimbal angle (deg)': gimbal_angles,
+    'Thrust (N)': thrust_values,
+    'gravity_values)': gravity_values,
+    'Moment of inertia': i_values,
+    'Dynamic Pressure (Pa)': q_values,
+    'Fz': Fz_values,
+    'Fx': Fx_values,
+    'Fy': Fy_values,
+    'force magnitude': FORCE_magnitude_values,
+    'accleration magnitude': acc_magnitude_values,
+    'velocity vector magnitude ': v_total_List,
 })
-csv_data = df.to_csv(index=False)
-console.log("Simulation complete.")
-csv_data
-`;
+df.to_csv("Flight_mechanics.csv", index=False)
 
-    simulationCSV = await pyodide.runPythonAsync(pythonCode);
-    document.getElementById("downloadCSV").disabled = false;
-    alert("Simulation complete! CSV ready for download.");
-};
+# Plotting
+plt.figure(figsize=(18, 10))
+plt.subplot(2, 2, 1)
+plt.plot(time, velocity)
+plt.xlabel('Time (s)')
+plt.ylabel('Velocity (m/s)')
+plt.title('Velocity vs Time')
+plt.grid(True)
 
-document.getElementById("downloadCSV").onclick = () => {
-    const blob = new Blob([simulationCSV], {type: 'text/csv'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url; a.download = "Flight_mechanics.csv"; a.click();
-    URL.revokeObjectURL(url);
-};
+plt.subplot(2, 2, 2)
+plt.plot(time, altitude, color='orange')
+plt.xlabel('Time (s)')
+plt.ylabel('Altitude (m)')
+plt.title('Altitude vs Time')
+plt.grid(True)
+
+plt.subplot(2, 2, 3)
+plt.plot(time, [np.degrees(a) for a in theta], color='purple')
+plt.xlabel('Time (s)')
+plt.ylabel('Pitch Angle (deg)')
+plt.title('Pitch-Over Profile')
+plt.grid(True)
+
+plt.subplot(2, 2, 4)
+plt.plot(time, acceleration, color='red')
+plt.xlabel('Time (s)')
+plt.ylabel('Acceleration (m/s²)')
+plt.title('Acceleration vs Time')
+plt.grid(True)
+
+plt.show()
+</textarea>
+
+<button onclick="runPython()">Run Simulation</button>
+<button onclick="downloadCSV()">Download CSV</button>
+<div id="plotArea"></div>
+</div>
+
+<script type="text/javascript">
+async function runPython() {
+    document.getElementById('plotArea').innerHTML = 'Loading Pyodide...';
+    if (!window.pyodide) {
+        window.pyodide = await loadPyodide({indexURL: "https://cdn.jsdelivr.net/pyodide/v0.23.4/full/"});
+        await window.pyodide.loadPackage(['numpy','pandas','matplotlib']);
+    }
+    document.getElementById('plotArea').innerHTML = 'Running simulation...';
+
+    const code = document.getElementById('pythonCode').value;
+    try {
+        await window.pyodide.runPythonAsync(code);
+        document.getElementById('plotArea').innerHTML = 'Simulation complete. CSV saved in browser filesystem.';
+    } catch(err) {
+        document.getElementById('plotArea').innerHTML = 'Error: ' + err;
+    }
+}
+
+async function downloadCSV() {
+    if (!window.pyodide) { alert('Run simulation first!'); return; }
+    try {
+        const csvBytes = window.pyodide.FS.readFile("Flight_mechanics.csv");
+        const blob = new Blob([csvBytes], {type: 'text/csv'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = "Flight_mechanics.csv";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    } catch(err) {
+        alert("CSV not found. Run simulation first.");
+    }
+}
 </script>
+
+<script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
 </body>
 </html>
+

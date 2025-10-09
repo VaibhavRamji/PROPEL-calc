@@ -31,101 +31,32 @@
 
      
       <!-- Sign In -->
-<section id="log-in-area">
-  <form id="login-form">
-    <p>Already have an account? Log in</p>
-    <input type="text" id="login-name" placeholder="Name"><br><br>
-    <button type="submit">Sign In</button>
-  </form>
 </section>
-
-<!-- Sign Up -->
-<section id="sign-up-area">
-  <form id="signup-form">
-    <p>Sign up</p>
-    <input type="text" id="signup-name" placeholder="Name"><br><br>
-    <button type="submit">Sign Up</button>
+ <h2>Enter Your Name</h2>
+  <form id="nameForm">
+    <input type="text" name="name" placeholder="Your name" required>
+    <button type="submit">Submit</button>
   </form>
-  <div id="log-area" style="border: 1px solid #ccc; padding: 10px; margin-top: 10px;">
-    <h3>Status</h3>
-    <p id="log-message"></p>
-  </div>
-</section>
+  <p id="status"></p>
 
-<!-- Admin Unlock -->
-<div style="margin-top: 20px;">
-  <input type="password" id="admin-code" placeholder="Enter admin code">
-  <button onclick="checkAdmin()">Unlock Admin Tools</button>
-</div>
+  <script>
+    const form = document.getElementById("nameForm");
+    const status = document.getElementById("status");
+    const scriptURL = "YOUR_WEB_APP_URL_HERE"; // Replace with your Apps Script URL
 
-<!-- Hidden Admin Download Button -->
-<button id="admin-download" style="display:none; margin-top: 10px;" onclick="downloadCSV()">Download All Entries</button>
-
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const loginForm = document.getElementById('login-form');
-    const signupForm = document.getElementById('signup-form');
-    const logMessage = document.getElementById('log-message');
-    const allEntries = [];
-
-    function updateLog(message) {
-      logMessage.innerText = message;
-    }
-
-    function checkAdmin() {
-      const code = document.getElementById("admin-code").value;
-      if (code === "yourSecret123") { // ← Change this to your own secret code
-        document.getElementById("admin-download").style.display = "inline-block";
-        updateLog("Admin tools unlocked.");
-      } else {
-        alert("Incorrect code.");
-      }
-    }
-
-    function downloadCSV() {
-      let csv = "Name,Action,Timestamp\n";
-      allEntries.forEach(entry => {
-        csv += `"${entry.name}","${entry.action}","${entry.timestamp}"\n`;
-      });
-
-      const blob = new Blob([csv], { type: "text/csv" });
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = "user_entries.csv";
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
-
-    loginForm.addEventListener('submit', function(event) {
-      event.preventDefault();
-      const name = document.getElementById('login-name').value.trim();
-      if (name) {
-        localStorage.setItem('loginName', name);
-        allEntries.push({ name, action: "Login", timestamp: new Date().toISOString() });
-        updateLog('Login name saved!');
-        loginForm.reset();
-      } else {
-        alert('Please enter your name to log in.');
-      }
+    form.addEventListener("submit", e => {
+      e.preventDefault();
+      const formData = new FormData(form);
+      fetch(scriptURL, { method: "POST", body: formData })
+        .then(response => status.textContent = "Name submitted successfully!")
+        .catch(error => status.textContent = "Error submitting name.");
+      form.reset();
     });
+  </script>
 
-    signupForm.addEventListener('submit', function(event) {
-      event.preventDefault();
-      const name = document.getElementById('signup-name').value.trim();
-      if (name) {
-        localStorage.setItem('signupName', name);
-        allEntries.push({ name, action: "Signup", timestamp: new Date().toISOString() });
-        updateLog('Sign-up name saved!');
-        signupForm.reset();
-      } else {
-        alert('Please enter your name to sign up.');
-      }
-    });
-  });
-</script>
 
-        </script>
+
+        
   <P>PROPELcalc does not view your email</P>
       </section>
       <section id="link">

@@ -30,35 +30,7 @@
       <h1>Welcome to PROPELcalc</h1>
 
      
-      <!-- Sign In -->
-</section>
- <h2>Enter Your Name</h2>
-  <form id="nameForm">
-    <input type="text" name="name" placeholder="Your name" required>
-    <button type="submit">Submit</button>
-  </form>
-  <p id="status"></p>
-
-  <script>
-    const form = document.getElementById("nameForm");
-    const status = document.getElementById("status");
-    const scriptURL = "YOUR_WEB_APP_URL_HERE"; // Replace with your Apps Script URL
-
-    form.addEventListener("submit", e => {
-      e.preventDefault();
-      const formData = new FormData(form);
-      fetch(scriptURL, { method: "POST", body: formData })
-        .then(response => status.textContent = "Name submitted successfully!")
-        .catch(error => status.textContent = "Error submitting name.");
-      form.reset();
-    });
-  </script>
-
-
-
-        
-  <P>PROPELcalc does not view your email</P>
-      </section>
+      
       <section id="link">
       <a href="PROPEL-calc.html">rocket engine simulations</a>
 
